@@ -128,10 +128,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="environmental_model.cpp" />
     <ClCompile Include="matrix.cpp" />
     <ClCompile Include="testbench.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="environmental_model.h" />
     <ClInclude Include="matrix.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
