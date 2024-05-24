@@ -17,18 +17,24 @@ class SimpleDrone : public EnvironmentalModel
 {
 
 private:
+	// Accellerometer noise parameters
+	//size_t accel_standard_dev = 2;
+
+	// Gyroscope noise parameters
+	//float accel_standard_dev = 0.2;
+
 	// Nose direction implicitly captures rotation of drone.
 	matrix<3, 1> nose_direction = { 1, 0, 0 };
+	matrix<3, 1> right_direction = { 0, 1, 0 };
 
 	// It is helpful to keep track of the current delta, to manage the evolution of the system.
 	size_t delta = 0;
 
-	void updateState(matrix<3, 3> transformation);
-
 public:
 
+	void updateState(matrix<3, 3> transformation);
 	matrix<3, 1> get_nose_direction() { return nose_direction; }
-
-	void transform_over(matrix<3, 3> transformation, size_t deltas);
+	matrix<3, 1> getPureAccelReadings();
+	matrix<3, 1> getPureGyroReadings();
 
 };

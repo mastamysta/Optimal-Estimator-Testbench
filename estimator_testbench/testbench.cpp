@@ -16,7 +16,7 @@ void matrix_tests()
 	std::cout << A;
 	std::cout << B;
 
-	std::cout << (A * B); // should give [1, 0, 2]T
+	std::cout << (A * B); // should give [1, 1, 0]T
 
 	std::cout << A.transpose();
 }
@@ -35,11 +35,13 @@ int main()
 	std::cout << drone_model.get_nose_direction();
 
 	// Okay I know I *said* I don't think in radians, but 180 degs is obvious.
-	auto pi_about_x = useful_matrices::rotate_about_x(180);
+	auto pi_about_z = useful_matrices::rotate_about_z(180);
 
-	drone_model.transform_over(pi_about_x, 1);
 
-	std::cout << drone_model.get_nose_direction();
+	auto pi4_about_y = useful_matrices::rotate_about_y(45);
+	drone_model.updateState(pi4_about_y);
+
+	std::cout << drone_model.getPureAccelReadings();
 
 	return 0;
 }

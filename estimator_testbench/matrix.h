@@ -10,8 +10,6 @@ class matrix
 {
 public:
 	float vals[I][J];
-	size_t X = I;
-	size_t Y = J;
 
 	void setvals(std::vector<float> init_vals)
 	{
@@ -42,6 +40,7 @@ public:
 		matrix<I, J> ret;
 		return ret.setvals(var);
 	}
+
 };
 
 template <size_t I, size_t J, size_t K>
@@ -65,7 +64,7 @@ matrix<I, K> operator*(matrix<I, J> lhs, matrix<J, K> rhs)
 	for (int i = 0; i < I; i++)
 		for (int k = 0; k < K; k++)
 			for (int j = 0; j < J; j++)
-				out.vals[i][j] += lhs.vals[j][i] * rhs.vals[k][j]; // TODO: This isn't quite right
+				out.vals[i][k] += lhs.vals[i][j] * rhs.vals[j][k];
 
 	return out;
 }
@@ -105,4 +104,20 @@ namespace useful_matrices
 	matrix<3, 3> rotate_about_x(float degrees);
 	matrix<3, 3> rotate_about_y(float degrees);
 	matrix<3, 3> rotate_about_z(float degrees);
+
+	template <int I>
+	matrix<I, I> identity()
+	{
+		matrix<I, I> ret;
+
+		for (int i = 0; i < I; i++)
+		{
+			for (int j = 0; j < I; j++)
+				ret.vals[i][j] = 0;
+
+			ret.vals[i][i] = 1;
+		}
+
+		return ret;
+	}
 };

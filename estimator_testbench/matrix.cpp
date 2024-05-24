@@ -40,4 +40,5 @@ namespace useful_matrices
 
 		return ret;
 	}
+
 };
