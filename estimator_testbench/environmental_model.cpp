@@ -32,34 +32,59 @@ static matrix<3, 1> vector_cross_product_3d(matrix<3, 1> lhs, matrix<3, 1> rhs)
 	return ret;
 }
 
+
 // Apply some linear transformation to our rotation state.
 // Shears & scales won't make much sense in the context of translating 3 dimensional rotation
 // space, so generally these will just be pure (unitary) rotations.
 void SimpleDrone::updateState(matrix<3, 3> transformation)
 {
+	this->prev_nose_direction = this->nose_direction;
+	this->prev_right_direction = this->prev_right_direction;
+	this->prev_top_direction = this->top_direction;
+
 	this->nose_direction = normalise_3d(transformation * this->nose_direction);
 	this->right_direction = normalise_3d(transformation * this->right_direction);
+
+	// Find perpendicular to nose and right vector - this is the direction of the top of the drone.
+	this->top_direction = vector_cross_product_3d(this->nose_direction, this->right_direction);
 
 	this->delta++;
 }
 
+// Return accelleration in Gs under current state.
 matrix<3, 1> SimpleDrone::getPureAccelReadings()
 {
-	// Find perpendicular to nose and right vector - this is the direction of the top of the drone
-	auto top = vector_cross_product_3d(this->nose_direction, this->right_direction);
-
 	// Without any external accelleration, the Z components of the forward, right & upward vectors
 	// (in the drone's frame) are the reaction forces measured due to locality. 
+	// This works nicely because gravity is 1g and the nose and right vectors are normalised.
 	matrix<3, 1> ret = { this->nose_direction.vals[2][0], 
 							this->right_direction.vals[2][0], 
-							top.vals[2][0] };
+							this->top_direction.vals[2][0] };
 
 	return ret;
 }
 
+// Return rotation in radians over the previous delta.
+// TODO: Unfortunately this method doesn't work on it's own because it doesnt capture HOW the
+// rotation occurred. E.g. did we rotate left or right to go through Pi Rads?
+// Luckily this method does converge when the rotation for each delta is very small.
 matrix<3, 1> SimpleDrone::getPureGyroReadings()
 {
-	matrix<3, 1> ret = {};
+	// Find rotations (in the drone's frame) in X, Y, Z over the previous delta.
+	// 
+	// To find these we use the following identities:
+	// 
+	//			theta = acos( A . B / |A| . |B|)
+	// 
+	//			A . B = transpose(A) * B
+	// 
+	// A and B are normalised so this makes the calulation quite nice.
+
+	auto x_rotation = acos((this->nose_direction.transpose() * this->prev_nose_direction).vals[0][0]);
+	auto y_rotation = acos((this->right_direction.transpose() * this->prev_right_direction).vals[0][0]);
+	auto z_rotation = acos((this->top_direction.transpose() * this->prev_top_direction).vals[0][0]);
+
+	matrix<3, 1> ret = { x_rotation, y_rotation, z_rotation };
 
 	return ret;
 }

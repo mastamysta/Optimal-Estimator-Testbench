@@ -26,6 +26,11 @@ private:
 	// Nose direction implicitly captures rotation of drone.
 	matrix<3, 1> nose_direction = { 1, 0, 0 };
 	matrix<3, 1> right_direction = { 0, 1, 0 };
+	matrix<3, 1> top_direction = { 0, 0, 1 };
+
+	matrix<3, 1> prev_nose_direction = { 1, 0, 0 };
+	matrix<3, 1> prev_right_direction = { 0, 1, 0 };
+	matrix<3, 1> prev_top_direction = { 0, 0, 1 };
 
 	// It is helpful to keep track of the current delta, to manage the evolution of the system.
 	size_t delta = 0;

@@ -39,9 +39,11 @@ int main()
 
 
 	auto pi4_about_y = useful_matrices::rotate_about_y(45);
-	drone_model.updateState(pi4_about_y);
+	drone_model.updateState(pi_about_z);
+	//drone_model.updateState(pi4_about_y);
 
 	std::cout << drone_model.getPureAccelReadings();
+	std::cout << drone_model.getPureGyroReadings();
 
 	return 0;
 }
