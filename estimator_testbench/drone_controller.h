@@ -6,40 +6,8 @@
 
 class Action
 {
-	virtual void doit(SimpleDrone* drone) = 0;
-	virtual void accept(SceneVisitor* visitor, SimpleDrone* drone) = 0;
-};
-
-class SceneVisitor
-{
 public:
-
-	void visit(RollAction *act, SimpleDrone* drone)
-	{
-
-	}
-
-	void visit(YawAction *act, SimpleDrone* drone)
-	{
-
-	}
-
-	void visit(PitchAction *act, SimpleDrone* drone)
-	{
-		act->doit();
-	}
-
-	void visit(frame_action scene, SimpleDrone* drone)
-	{
-		for (Action* act : scene)
-			act->accept(this, drone);
-	}
-
-	void visit(std::vector<frame_action> scene, SimpleDrone* drone)
-	{
-		for (frame_action frame : scene)
-			this->visit(frame, drone);
-	}
+	virtual void doit(SimpleDrone* drone) = 0;
 };
 
 class RollAction 
@@ -54,11 +22,6 @@ class RollAction
 	void doit(SimpleDrone *drone)
 	{
 		drone->roll_rads(rads);
-	}
-
-	void accept(SceneVisitor* visitor, SimpleDrone* drone)
-	{
-		visitor->visit(this, drone);
 	}
 };
 
@@ -75,11 +38,6 @@ class PitchAction
 	{
 		drone->pitch_rads(rads);
 	}
-
-	void accept(SceneVisitor* visitor, SimpleDrone* drone)
-	{
-		visitor->visit(this, drone);
-	}
 };
 
 class YawAction
@@ -94,11 +52,6 @@ class YawAction
 	void doit(SimpleDrone* drone)
 	{
 		drone->yaw_rads(rads);
-	}
-
-	void accept(SceneVisitor* visitor, SimpleDrone* drone)
-	{
-		visitor->visit(this, drone);
 	}
 };
 
