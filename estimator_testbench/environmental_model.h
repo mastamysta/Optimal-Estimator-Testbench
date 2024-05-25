@@ -1,5 +1,7 @@
 #pragma once
 
+#include <random>
+
 #include "matrix.h"
 
 
@@ -17,11 +19,18 @@ class SimpleDrone : public EnvironmentalModel
 {
 
 private:
+
+	std::default_random_engine generator;
+	std::normal_distribution<float> accellerometer_distribution;
+	std::normal_distribution<float> gyroscope_distribution;
+
 	// Accellerometer noise parameters
-	//size_t accel_standard_dev = 2;
+	size_t accellerometer_noise_mean = 0;
+	size_t accellerometer_noise_standard_dev = 2;
 
 	// Gyroscope noise parameters
-	//float accel_standard_dev = 0.2;
+	float gyroscope_noise_mean = 0.1;
+	float gyroscope_noise_standard_dev = 0.3;
 
 	// Nose direction implicitly captures rotation of drone.
 	matrix<3, 1> nose_direction = { 1, 0, 0 };
@@ -43,6 +52,17 @@ private:
 
 public:
 
+	SimpleDrone()
+	{
+		accellerometer_distribution = std::normal_distribution<float>(
+										accellerometer_noise_mean,
+										accellerometer_noise_standard_dev);
+
+		gyroscope_distribution = std::normal_distribution<float>(
+									gyroscope_noise_mean,
+									gyroscope_noise_standard_dev);
+	}
+
 	void nextDelta();
 
 	void pitch_rads(float rads);
@@ -52,8 +72,14 @@ public:
 	matrix<3, 1> get_nose_direction() { return nose_direction; }
 	matrix<3, 1> get_right_direction() { return right_direction; }
 	matrix<3, 1> get_top_direction() { return top_direction; }
+
+	// Readings with no noise
 	matrix<3, 1> getPureAccelReadings();
 	matrix<3, 1> getPureGyroReadings();
 	matrix<3, 1> getPureGyroReadings_deprecated();
+
+	// Readings including noise
+	matrix<3, 1> getAccelReadings();
+	matrix<3, 1> getGyroReadings();
 
 };

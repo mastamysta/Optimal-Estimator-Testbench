@@ -126,6 +126,24 @@ matrix<3, 1> SimpleDrone::getPureGyroReadings()
 	return ret;
 }
 
+matrix<3, 1> SimpleDrone::getAccelReadings()
+{
+	matrix<3, 1> noise = { accellerometer_distribution(generator),
+							accellerometer_distribution(generator),
+							accellerometer_distribution(generator) };
+
+	return getPureAccelReadings() + noise;
+}
+
+matrix<3, 1> SimpleDrone::getGyroReadings()
+{
+	matrix<3, 1> noise = { gyroscope_distribution(generator),
+							gyroscope_distribution(generator),
+							gyroscope_distribution(generator) };
+
+	return getPureGyroReadings() + noise;
+}
+
 // Return rotation in radians over the previous delta.
 // TODO: Unfortunately this method doesn't work on it's own because it doesnt capture HOW the
 // rotation occurred. E.g. did we rotate left or right to go through Pi Rads?
