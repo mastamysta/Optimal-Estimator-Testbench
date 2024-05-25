@@ -48,7 +48,62 @@ void SimpleDrone::updateState(matrix<3, 3> transformation)
 	// Find perpendicular to nose and right vector - this is the direction of the top of the drone.
 	this->top_direction = vector_cross_product_3d(this->nose_direction, this->right_direction);
 
+	// To prevent us from accumulating error on the right_direction vector (which may not be perfectly
+	// orthogonal to the nose_direction), we take the cross product of top and nose.
+	//this->right_direction = vector_cross_product_3d(this->nose_direction, this->top_direction);
+
+}
+
+void SimpleDrone::nextDelta()
+{
+	x_rot = 0;
+	y_rot = 0;
+	z_rot = 0;
+
 	this->delta++;
+}
+
+void SimpleDrone::rotate_about(float rads, matrix<3, 1> axis)
+{
+	// We need to find the matrix to rotate about the Y axis in the drone's frame.
+
+	// a = current Y vector (right)
+
+	// C	=	0	az	-ay
+	//			-az	0	ax
+	//			ay	-ax	0
+
+	// R = I + Csin(theta) + C ^ 2 (1 - cos(theta))
+
+	auto I = useful_matrices::identity<3>();
+
+	auto a = axis.vals;
+
+	matrix<3, 3> C = { 0,			a[2][0],	-a[1][0],
+						-a[2][0],	0,			a[0][0],
+						a[1][0],	-a[0][0],	0 };
+
+	matrix<3, 3> R = I + (sin(rads) * C) + ((1 - cos(rads)) * (C ^ 2));
+
+	updateState(R);
+}
+
+void SimpleDrone::pitch_rads(float rads)
+{
+	y_rot += rads;
+	rotate_about(rads, this->right_direction);
+}
+
+void SimpleDrone::yaw_rads(float rads)
+{
+	z_rot += rads;
+	rotate_about(rads, this->top_direction);
+}
+
+void SimpleDrone::roll_rads(float rads)
+{
+	x_rot += rads;
+	rotate_about(rads, this->nose_direction);
 }
 
 // Return accelleration in Gs under current state.
@@ -65,12 +120,44 @@ matrix<3, 1> SimpleDrone::getPureAccelReadings()
 }
 
 // Return rotation in radians over the previous delta.
+matrix<3, 1> SimpleDrone::getPureGyroReadings()
+{
+	matrix<3, 1> ret = { x_rot, y_rot, z_rot };
+	return ret;
+}
+
+// Return rotation in radians over the previous delta.
 // TODO: Unfortunately this method doesn't work on it's own because it doesnt capture HOW the
 // rotation occurred. E.g. did we rotate left or right to go through Pi Rads?
 // Luckily this method does converge when the rotation for each delta is very small.
-matrix<3, 1> SimpleDrone::getPureGyroReadings()
+matrix<3, 1> SimpleDrone::getPureGyroReadings_deprecated()
 {
-	// Find rotations (in the drone's frame) in X, Y, Z over the previous delta.
+	// To get rotations in X, Y & Z in the drone's frame, first we project the previous nose direction
+	// onto the XY, XZ & ZY planes (in the drone's frame). We then measure the angle between these
+	// projections and the current nose direction to get the yaw, pitch & roll respectively.
+
+	// For convenience
+	auto nose = this->nose_direction.vals;
+	auto right = this->right_direction.vals;
+	auto top = this->top_direction.vals;
+
+	matrix<3, 3> xy_projection = { nose[0][0], right[0][0], 0,
+									nose[1][0], right[1][0], 0,
+									nose[2][0], right[2][0], 0 };
+
+	matrix<3, 3> xz_projection = { nose[0][0], 0, top[0][0],
+									nose[1][0], 0, top[1][0],
+									nose[2][0], 0, top[2][0] };
+
+	matrix<3, 3> yz_projection = { 0, right[0][0], top[0][0],
+									0, right[1][0], top[1][0],
+									0, right[2][0], top[2][0] };
+
+	auto xy_prev_nose = (xy_projection * this->prev_nose_direction);
+	auto xz_prev_right = (xz_projection * this->prev_right_direction);
+	auto yz_prev_top = (yz_projection * this->prev_top_direction);
+
+	// Find angle between projection of previous and current nose direction.
 	// 
 	// To find these we use the following identities:
 	// 
@@ -80,21 +167,18 @@ matrix<3, 1> SimpleDrone::getPureGyroReadings()
 	// 
 	// A and B are normalised so this makes the calulation quite nice.
 
-	auto x_rotation = acos((this->nose_direction.transpose() * this->prev_nose_direction).vals[0][0]);
-	auto y_rotation = acos((this->right_direction.transpose() * this->prev_right_direction).vals[0][0]);
-	auto z_rotation = acos((this->top_direction.transpose() * this->prev_top_direction).vals[0][0]);
+	matrix<3, 1> forward_in_drone_frame = { 1, 0, 0 };
+	matrix<3, 1> right_in_drone_frame = { 0, 1, 0 };
+	matrix<3, 1> up_in_drone_frame = { 0, 0 , 1 };
 
-	matrix<3, 1> ret = { x_rotation, y_rotation, z_rotation };
+	auto bruh = (yz_prev_top.transpose() * this->top_direction).vals[0][0] - 2;
+
+	auto pitch = acos((xz_prev_right.transpose() * this->right_direction).vals[0][0]);
+	auto yaw = acos((xy_prev_nose.transpose() * this->nose_direction).vals[0][0]);
+	auto roll = acos(bruh);
+
+	matrix<3, 1> ret = { pitch, yaw, roll };
 
 	return ret;
 }
 
-
-// Get angle between +X (forward direction of drone) and Z axis:
-//	a . b = |a| . |b| . cos ( theta )
-// vectors are normalized, so magnitudes are all 1
-// Projection onto span of Z transpose is equivalent to dot product.
-//matrix<3, 1> Z = { 0, 0, 1 };
-//auto theta_forward = acos((Z.transpose() * this->nose_direction).vals[0][0]);
-//auto theta_right = acos((Z.transpose() * this->right_direction).vals[0][0]);
-//auto mag = get_magnitude(this->nose_direction);

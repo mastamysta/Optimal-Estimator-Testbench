@@ -69,6 +69,42 @@ matrix<I, K> operator*(matrix<I, J> lhs, matrix<J, K> rhs)
 	return out;
 }
 
+template <size_t I, size_t J>
+matrix<I, J> operator*(float lhs, matrix<I, J> rhs)
+{
+	matrix<I, J> ret;
+
+	for (int i = 0; i < I; i++)
+		for (int j = 0; j < J; j++)
+			ret.vals[i][j] = rhs.vals[i][j] * lhs;
+
+	return ret;
+}
+
+template <size_t I, size_t J>
+matrix<I, J> operator^(matrix<I, J> lhs, float rhs)
+{
+	matrix<I, J> ret;
+
+	for (int i = 0; i < I; i++)
+		for (int j = 0; j < J; j++)
+			ret.vals[i][j] = pow(lhs.vals[i][j], rhs);
+
+	return ret;
+}
+
+template <size_t I, size_t J>
+matrix<I, J> operator+(matrix<I, J> lhs, matrix<I, J> rhs)
+{
+	matrix<I, J> ret;
+
+	for (int i = 0; i < I; i++)
+		for (int j = 0; j < J; j++)
+			ret.vals[i][j] = lhs.vals[i][j] + rhs.vals[i][j];
+
+	return ret;
+}
+
 // Scalar division, how fun!
 template <size_t I, size_t J>
 matrix<I, J> operator/(matrix<I, J> lhs, float rhs)

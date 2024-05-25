@@ -23,6 +23,8 @@ void matrix_tests()
 
 #endif
 
+#define PI 3.14159265
+
 int main()
 {
 
@@ -34,16 +36,20 @@ int main()
 
 	std::cout << drone_model.get_nose_direction();
 
-	// Okay I know I *said* I don't think in radians, but 180 degs is obvious.
-	auto pi_about_z = useful_matrices::rotate_about_z(180);
+	drone_model.roll_rads(PI / 4);
+	drone_model.yaw_rads(PI / 8);
 
-
-	auto pi4_about_y = useful_matrices::rotate_about_y(45);
-	drone_model.updateState(pi_about_z);
-	//drone_model.updateState(pi4_about_y);
+	//std::cout << "nose direction:\n";
+	//std::cout << drone_model.get_nose_direction();
+	//std::cout << "right direction:\n";
+	//std::cout << drone_model.get_right_direction();
+	//std::cout << "top direction:\n";
+	//std::cout << drone_model.get_top_direction();
 
 	std::cout << drone_model.getPureAccelReadings();
 	std::cout << drone_model.getPureGyroReadings();
+
+
 
 	return 0;
 }

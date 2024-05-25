@@ -32,14 +32,28 @@ private:
 	matrix<3, 1> prev_right_direction = { 0, 1, 0 };
 	matrix<3, 1> prev_top_direction = { 0, 0, 1 };
 
+	// Record rotation operations applied this delta
+	float x_rot = 0, y_rot = 0, z_rot = 0;
+
 	// It is helpful to keep track of the current delta, to manage the evolution of the system.
 	size_t delta = 0;
 
+	void updateState(matrix<3, 3> transformation);
+	void rotate_about(float rads, matrix<3, 1> axis);
+
 public:
 
-	void updateState(matrix<3, 3> transformation);
+	void nextDelta();
+
+	void pitch_rads(float rads);
+	void yaw_rads(float rads);
+	void roll_rads(float rads);
+
 	matrix<3, 1> get_nose_direction() { return nose_direction; }
+	matrix<3, 1> get_right_direction() { return right_direction; }
+	matrix<3, 1> get_top_direction() { return top_direction; }
 	matrix<3, 1> getPureAccelReadings();
 	matrix<3, 1> getPureGyroReadings();
+	matrix<3, 1> getPureGyroReadings_deprecated();
 
 };
