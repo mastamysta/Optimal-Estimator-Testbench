@@ -3,6 +3,7 @@
 
 #include "matrix.h"
 #include "environmental_model.h"
+#include "drone_controller.h"
 
 //#define RUN_TESTS
 
@@ -21,6 +22,24 @@ void matrix_tests()
 	std::cout << A.transpose();
 }
 
+void rotation_tests()
+{
+	std::cout << drone_model.get_nose_direction();
+
+	drone_model.roll_rads(PI / 4);
+	drone_model.yaw_rads(PI / 8);
+
+	std::cout << "nose direction:\n";
+	std::cout << drone_model.get_nose_direction();
+	std::cout << "right direction:\n";
+	std::cout << drone_model.get_right_direction();
+	std::cout << "top direction:\n";
+	std::cout << drone_model.get_top_direction();
+
+	std::cout << drone_model.getPureAccelReadings();
+	std::cout << drone_model.getPureGyroReadings();
+}
+
 #endif
 
 #define PI 3.14159265
@@ -30,26 +49,28 @@ int main()
 
 #ifdef RUN_TESTS
 	matrix_tests();
+	rotation_tests();
 #endif
 
 	SimpleDrone drone_model;
 
-	std::cout << drone_model.get_nose_direction();
+	// Build instruction chains for a set of commanded rotations over 100k deltas
+	scene scene;
+	delta frame;
 
-	drone_model.roll_rads(PI / 4);
-	drone_model.yaw_rads(PI / 8);
+	float total_rotation = 314;
+	float yaw_deltas = 10000;
+	float delta_rotation = total_rotation / yaw_deltas;
 
-	//std::cout << "nose direction:\n";
-	//std::cout << drone_model.get_nose_direction();
-	//std::cout << "right direction:\n";
-	//std::cout << drone_model.get_right_direction();
-	//std::cout << "top direction:\n";
-	//std::cout << drone_model.get_top_direction();
+	YawAction *yaw = new YawAction(delta_rotation);
+	RepeatAction r((Action*)yaw, yaw_deltas);
 
-	std::cout << drone_model.getPureAccelReadings();
-	std::cout << drone_model.getPureGyroReadings();
+	frame.push_back((Action*)&r);
+	scene.push_back(frame);
 
-
+	DroneController dc(LOGGING_CSV);
+	dc.set_logging_path(".\\dingus.csv");
+	dc.run_simulation(drone_model, scene);
 
 	return 0;
 }
