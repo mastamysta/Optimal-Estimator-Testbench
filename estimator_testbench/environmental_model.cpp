@@ -5,14 +5,29 @@
 #include "matrix.h"
 #include "environmental_model.h"
 
+template <size_t I>
+static float ipow(float f)
+{
+	float ret = 1;
+
+	for (int i = 0; i < I; i++)
+		ret *= f;
+
+	return ret;
+}
+
 // Get 3D vector magitude
 template <size_t I>
 static float get_magnitude(matrix<I, 1> in)
 {
 	float magnitude = 0;
 
+	// Profiling showed a bottleneck on pow, due to use of logarithms to resolve
+	// assumed floating point exponent. Since we have a (known) integer exponent
+	// we implement an integer power template.
 	for (int i = 0; i < I; i++)
-		magnitude += pow(in.vals[i][0], 2);
+		//magnitude += pow(in.vals[i][0], 2);
+		magnitude += ipow<2>(in.vals[i][0]);
 
 	return sqrtf(magnitude);
 }
@@ -83,7 +98,7 @@ void SimpleDrone::rotate_about(float rads, matrix<3, 1> axis)
 						-a[2][0],	0,			a[0][0],
 						a[1][0],	-a[0][0],	0 };
 
-	matrix<3, 3> R = I + (sin(rads) * C) + ((1 - cos(rads)) * (C ^ 2));
+	matrix<3, 3> R = I + (sin(rads) * C) + ((1 - cos(rads)) * (C ^ (size_t)2));
 
 	updateState(R);
 }

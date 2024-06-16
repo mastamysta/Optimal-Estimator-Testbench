@@ -58,13 +58,15 @@ matrix<I, K> operator*(matrix<I, J> lhs, matrix<J, K> rhs)
 	matrix<I, K> out;
 
 	for (int i = 0; i < I; i++)
+	{
 		for (int k = 0; k < K; k++)
+		{
 			out.vals[i][k] = 0;
 
-	for (int i = 0; i < I; i++)
-		for (int k = 0; k < K; k++)
 			for (int j = 0; j < J; j++)
 				out.vals[i][k] += lhs.vals[i][j] * rhs.vals[j][k];
+		}
+	}
 
 	return out;
 }
@@ -89,6 +91,28 @@ matrix<I, J> operator^(matrix<I, J> lhs, float rhs)
 	for (int i = 0; i < I; i++)
 		for (int j = 0; j < J; j++)
 			ret.vals[i][j] = pow(lhs.vals[i][j], rhs);
+
+	return ret;
+}
+
+static inline float ipow(float f, size_t exponent)
+{
+	float ret = 1;
+
+	for (int i = 0; i < exponent; i++)
+		ret *= f;
+
+	return ret;
+}
+
+template <size_t I, size_t J>
+matrix<I, J> operator^(matrix<I, J> lhs, size_t rhs)
+{
+	matrix<I, J> ret;
+
+	for (int i = 0; i < I; i++)
+		for (int j = 0; j < J; j++)
+			ret.vals[i][j] = ipow(lhs.vals[i][j], rhs);
 
 	return ret;
 }
